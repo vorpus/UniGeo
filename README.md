@@ -126,7 +126,7 @@ python infer.py \
     --dataset_path /path/to/dataset (point cloud already included) \
     --wan_model_dir /path/to/Wan2.2-TI2V-5B \
     --lora_path /path/to/lora \
-    --wan22_config_path /path/to/config.json (see `my_config.json` in this repo)
+    --wan_config_path /path/to/config.json (see `my_config.json` in this repo)
 ```
 
 
