@@ -66,7 +66,7 @@ conda install /path/to/your/download/pytorch3d-0.7.8-py39_cu121_pyt241.tar.bz2
 
 ## ⏬ Download Checkpoints
 
-*   **UniGeo Lora:** Download the main checkpoint from [HuggingFace](https://huggingface.co/123123aa123/UniGeo).
+*   **UniGeo Lora:** Download the main checkpoint from [HuggingFace](https://huggingface.co/123123aa123/UniGeo). This checkpoint is optimized for real-world images. We disabled the Geometric Anchor Attention because we empirically observed it delivers a better experience on real images.
 
 *   **Wan and VGGT Model:** This project relies on [
 Wan2.2-TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B) and [
