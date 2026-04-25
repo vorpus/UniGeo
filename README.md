@@ -116,6 +116,7 @@ python Prompt_to_Point_Cloud.py \
     --model_path /path/to/VGGT \
     --dataset_path /path/to/dataset
 ```
+💡 Tip: The generated point cloud serves as an explicit visual preview of the camera motion. You can iteratively adjust the camera parameters in your prompt.json and re-run this step until the geometric trajectory perfectly matches your expectations before proceeding to the final image generation.
 
 **Step 3: Final Generation**
 
