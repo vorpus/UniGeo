@@ -18,9 +18,10 @@
 <b>Zhejiang University &nbsp; | &nbsp; Harvard University &nbsp;  </b>
 </p>
 
+**⚠️ Important Notice on Input Images:**
+> Due to the inherent constraints of the VGGT and Wan models, please ensure your input images satisfy the condition: **Width ≥ Height** (i.e., landscape or square aspect ratios). Using portrait images (where height > width) may lead to suboptimal results.
+> 
 ## 🔥 News
-
-
 
 * **[2026.4.24]** Release inference demo and pretrained [checkpoint]((https://huggingface.co/123123aa123/UniGeo)).
 
