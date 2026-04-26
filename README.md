@@ -14,6 +14,7 @@
     <a href="https://arxiv.org/pdf/2604.17565"><img src='https://img.shields.io/badge/arXiv-UniGeo-red?color=%23aa1a1a' alt='Paper PDF'></a>
     <a href='https://mo230761.github.io/UniGeo.github.io/'><img src='https://img.shields.io/badge/Project%20Page-UniGeo-cyan?logoColor=%23FFD21E&color=%23cbe6f2' alt='Project Page'></a>
     <a href='https://huggingface.co/123123aa123/UniGeo'><img src='https://img.shields.io/badge/Model-UniGeo-yellow?logoColor=%23FFD21E&color=%23ffcc1c'></a>
+    <a href='https://huggingface.co/spaces/123123aa123/UniGeo'><img src='https://img.shields.io/badge/Space-UniGeo-orange'></a>
 <br>
 <b>Zhejiang University &nbsp; | &nbsp; Harvard University &nbsp;  </b>
 </p>
@@ -22,8 +23,8 @@
 > Due to the inherent constraints of the VGGT and Wan models, please ensure your input images satisfy the condition: **Width ≥ Height** (i.e., landscape or square aspect ratios). Using portrait images (where height > width) may lead to suboptimal results.
 > 
 ## 🔥 News
-
-* **[2026.4.24]** Release inference demo and pretrained [checkpoint]((https://huggingface.co/123123aa123/UniGeo)).
+* **[2026.4.26]** Release HF [Space](https://huggingface.co/spaces/123123aa123/UniGeo). Welcome to try it out!
+* **[2026.4.24]** Release inference demo and pretrained [checkpoint](https://huggingface.co/123123aa123/UniGeo).
 
 
 ## 💡 Demo
