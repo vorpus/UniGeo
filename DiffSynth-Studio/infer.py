@@ -100,7 +100,34 @@ if __name__ == '__main__':
         os.path.join(args.wan_model_dir, "diffusion_pytorch_model-00002-of-00003.safetensors"),
         os.path.join(args.wan_model_dir, "diffusion_pytorch_model-00003-of-00003.safetensors"),
     ]
+    
+    # offload, only need 23 GB vRAM for inference, but slower than directly loading to GPU
+    # vram_config = {
+    #     "offload_dtype": torch.bfloat16,
+    #     "offload_device": "cpu",
+    #     "onload_dtype": torch.bfloat16,
+    #     "onload_device": "cuda:0",
+    #     "preparing_dtype": torch.bfloat16,
+    #     "preparing_device": "cuda:0",
+    #     "computation_dtype": torch.bfloat16,
+    #     "computation_device": "cuda:0",
+    # }
 
+
+    # pipe = WanVideoPipeline.from_pretrained(
+    #     torch_dtype=torch.bfloat16,
+    #     device="cuda",
+    #     model_configs=[
+    #         ModelConfig(path=os.path.join(args.wan_model_dir, "models_t5_umt5-xxl-enc-bf16.pth"),  **vram_config),
+    #         ModelConfig(path=os.path.join(args.wan_model_dir, "Wan2.2_VAE.pth"),  **vram_config),
+    #     ],
+    #     tokenizer_config=ModelConfig(path=os.path.join(args.wan_model_dir, "google/umt5-xxl/")),
+    #     wan_paths=wan_paths,
+    #     wan_config_path=args.wan_config_path,
+    #     vram_limit=20,
+    # )
+
+    
     pipe = WanVideoPipeline.from_pretrained(
         torch_dtype=torch.bfloat16,
         device="cuda",
