@@ -23,6 +23,7 @@
 > Due to the inherent constraints of the VGGT and Wan models, please ensure your input images satisfy the condition: **Width ≥ Height** (i.e., landscape or square aspect ratios). Using portrait images (where height > width) may lead to suboptimal results.
 > 
 ## 🔥 News
+* **[2026.4.28]** Update inference demo to support 23GB VRAM.
 * **[2026.4.26]** Release HF [Space](https://huggingface.co/spaces/123123aa123/UniGeo). Welcome to try it out!
 * **[2026.4.24]** Release inference demo and pretrained [checkpoint](https://huggingface.co/123123aa123/UniGeo).
 
@@ -131,7 +132,7 @@ python infer.py \
     --lora_path /path/to/lora \
     --wan_config_path /path/to/config.json (see `my_config.json` in this repo)
 ```
-
+💡 Tip: We added offload support in the code. You can enable it as needed, with a minor trade-off in running speed.
 
 ## 🤝 Acknowledgement
 
