@@ -1,4 +1,7 @@
 <h1 align="center">UniGeo</h2>
+
+> This fork adds a web UI with fine-grained controls to position the camera in the point cloud. See the static demo [here](https://vorpus.github.io/UniGeo/).
+
 <p align="center">
 <a href="https://openreview.net/profile?id=~Hong_Jiang4"><strong>Hong Jiang</strong></a>
 ·
