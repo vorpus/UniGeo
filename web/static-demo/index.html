@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>UniGeo · static demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; background: #111; color: #eee; font: 14px/1.4 -apple-system, system-ui, sans-serif; overflow: hidden; }
+    #app { display: grid; grid-template-columns: 1fr 360px; height: 100vh; }
+    #viewer { position: relative; background: #000; overflow: hidden; }
+    #viewer canvas { display: block; }
+    #vf-wrap { position: absolute; right: 16px; bottom: 16px; width: 320px; aspect-ratio: 1248/704; background: #000; border: 2px solid #4ade80; border-radius: 4px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 5; }
+    #vf-wrap canvas { display: block; width: 100%; height: 100%; }
+    #vf-wrap .vf-label { position: absolute; left: 6px; top: 4px; font-size: 10px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; pointer-events: none; text-shadow: 0 0 3px #000; }
+    #vf-wrap .vf-hint { position: absolute; left: 6px; bottom: 4px; font-size: 10px; color: #888; pointer-events: none; text-shadow: 0 0 3px #000; }
+    #demo-banner { position: absolute; left: 16px; top: 16px; padding: 6px 12px; background: rgba(37, 99, 235, 0.15); border: 1px solid #2563eb; color: #93c5fd; border-radius: 4px; font-size: 12px; z-index: 5; pointer-events: none; }
+    #panel { padding: 16px; display: flex; flex-direction: column; gap: 14px; border-left: 1px solid #222; overflow-y: auto; }
+    #panel h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row label { flex: 0 0 60px; font-size: 12px; color: #aaa; }
+    .row input[type=number] { width: 60px; background: #1a1a1a; color: #eee; border: 1px solid #333; padding: 4px 6px; border-radius: 4px; }
+    button { padding: 10px 14px; background: #2563eb; color: #fff; border: 0; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    button:disabled { background: #333; color: #666; cursor: not-allowed; }
+    #progress { background: #1a1a1a; border-radius: 6px; overflow: hidden; height: 8px; }
+    #progress > div { background: linear-gradient(90deg, #2563eb, #4ade80); height: 100%; width: 100%; }
+    #status { font-size: 12px; color: #4ade80; min-height: 16px; }
+    #result { width: 100%; max-height: 360px; object-fit: contain; background: #000; border-radius: 4px; cursor: zoom-in; }
+    #result:hover { outline: 2px solid #4ade80; }
+    #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+    #gallery img { width: 100%; aspect-ratio: 1248/704; object-fit: cover; cursor: zoom-in; border-radius: 3px; background: #000; border: 1px solid #222; }
+    #gallery img:hover { border-color: #4ade80; }
+    #video { width: 100%; aspect-ratio: 1248/704; background: #000; border-radius: 4px; }
+    #input-thumb { width: 100%; height: auto; aspect-ratio: 1248/704; object-fit: contain; border-radius: 4px; background: #000; }
+    .hint { font-size: 11px; color: #666; margin-top: -6px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; background: #1a1a1a; color: #888; font-size: 11px; }
+    .reset { font-size: 11px; padding: 4px 8px; background: #1a1a1a; border: 1px solid #333; color: #aaa; border-radius: 4px; cursor: pointer; }
+    .demo-note { font-size: 11px; color: #888; padding: 8px 10px; background: #1a1a1a; border-left: 2px solid #2563eb; border-radius: 3px; }
+    .demo-note a { color: #93c5fd; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="viewer">
+    <div id="demo-banner">static demo · no backend · drag to explore the point cloud</div>
+    <div id="vf-wrap">
+      <span class="vf-label">viewfinder · model input preview</span>
+      <span class="vf-hint">holes will be filled in by wan</span>
+    </div>
+  </div>
+  <div id="panel">
+    <h2>image</h2>
+    <img id="input-thumb" src="assets/input.png" />
+    <h2>camera <span class="badge">drag to orbit · right-drag to pan · scroll to zoom</span></h2>
+    <button class="reset" id="reset-cam">reset camera</button>
+    <div class="row"><label>x (right)</label><input type="number" id="num-x" step="0.05" value="0"/></div>
+    <div class="row"><label>y (down)</label><input type="number" id="num-y" step="0.05" value="0"/></div>
+    <div class="row"><label>z (fwd)</label><input type="number" id="num-z" step="0.05" value="0"/></div>
+    <div class="row"><label>phi (yaw°)</label><input type="number" id="num-phi" step="1" value="0"/></div>
+    <div class="row"><label>theta (pitch°)</label><input type="number" id="num-theta" step="1" value="0"/></div>
+    <p class="hint">these come from your viewer camera. the green box on the left is what wan would receive as input.</p>
+    <h2>generate</h2>
+    <p class="demo-note">this is a static demo of the UI — generation is disabled. results below were produced by the live pipeline at x=0.15, z=0.1, 4 steps (~12 minutes on an RTX 4090).</p>
+    <div id="progress"><div></div></div>
+    <div id="status">[done] sample run · 4/4 steps · pre-rendered</div>
+    <h2>result</h2>
+    <img id="result" src="assets/result_4.png"/>
+    <div id="gallery"></div>
+    <video id="video" controls loop muted autoplay src="assets/result_4.mp4"></video>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const viewer = document.getElementById('viewer');
+const resetBtn = document.getElementById('reset-cam');
+const resultImg = document.getElementById('result');
+const numX = document.getElementById('num-x');
+const numY = document.getElementById('num-y');
+const numZ = document.getElementById('num-z');
+const numPhi = document.getElementById('num-phi');
+const numTheta = document.getElementById('num-theta');
+const gallery = document.getElementById('gallery');
+
+// ---------- Three.js ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+// VGGT/world frame: +X right, +Y down, +Z forward (OpenCV camera convention).
+// Three.js frame:    +X right, +Y up,   +Z backward (out of screen).
+// Map VGGT -> Three.js for display by flipping Y and Z (proper rotation, det=+1).
+const cloudGroup = new THREE.Group();
+cloudGroup.scale.set(1, -1, -1);
+scene.add(cloudGroup);
+
+const camera = new THREE.PerspectiveCamera(60, 1, 0.01, 100);
+camera.position.set(0, 0, 0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, -1.5);
+controls.update();
+
+let cloudPoints = null;
+const HELPER_LAYER = 1;
+camera.layers.enable(HELPER_LAYER);
+
+const originHelper = new THREE.AxesHelper(0.3);
+originHelper.layers.set(HELPER_LAYER);
+scene.add(originHelper);
+
+const camHelperGeom = new THREE.ConeGeometry(0.06, 0.12, 4);
+camHelperGeom.translate(0, 0.06, 0);
+camHelperGeom.rotateX(-Math.PI / 2);
+const camHelperMat = new THREE.MeshBasicMaterial({ color: 0x4ade80, wireframe: true });
+const originCam = new THREE.Mesh(camHelperGeom, camHelperMat);
+originCam.layers.set(HELPER_LAYER);
+scene.add(originCam);
+
+// ---------- viewfinder (PiP) ----------
+const vfWrap = document.getElementById('vf-wrap');
+const vfRenderer = new THREE.WebGLRenderer({ antialias: true });
+vfRenderer.setPixelRatio(window.devicePixelRatio);
+vfWrap.appendChild(vfRenderer.domElement);
+const vfCam = new THREE.PerspectiveCamera(45, 1248 / 704, 0.01, 100);
+vfCam.layers.set(0);
+let cameraIntrinsics = null;
+
+function resizeViewfinder() {
+  const w = vfWrap.clientWidth, h = vfWrap.clientHeight;
+  vfRenderer.setSize(w, h, false);
+  vfCam.aspect = 1248 / 704;
+  vfCam.updateProjectionMatrix();
+}
+new ResizeObserver(resizeViewfinder).observe(vfWrap);
+
+function setVfFovFromIntrinsics() {
+  if (!cameraIntrinsics) return;
+  const fy = cameraIntrinsics.focals[1];
+  const h = cameraIntrinsics.image_h;
+  const fovYRad = 2 * Math.atan(h / (2 * fy));
+  vfCam.fov = fovYRad * 180 / Math.PI;
+  vfCam.updateProjectionMatrix();
+}
+
+function updateViewfinderCamera() {
+  const x = parseFloat(numX.value) || 0;
+  const y = parseFloat(numY.value) || 0;
+  const z = parseFloat(numZ.value) || 0;
+  const phi = (parseFloat(numPhi.value) || 0) * Math.PI / 180;
+  const theta = (parseFloat(numTheta.value) || 0) * Math.PI / 180;
+
+  vfCam.position.set(x, -y, -z);
+
+  const fwdDx = Math.cos(theta) * Math.sin(phi);
+  const fwdDy = Math.sin(theta);
+  const fwdDz = -Math.cos(theta) * Math.cos(phi);
+
+  vfCam.up.set(0, 1, 0);
+  vfCam.lookAt(vfCam.position.x + fwdDx, vfCam.position.y + fwdDy, vfCam.position.z + fwdDz);
+}
+
+function resize() {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+function render() {
+  requestAnimationFrame(render);
+  controls.update();
+  renderer.render(scene, camera);
+  syncFromCamera();
+  if (cloudPoints) {
+    updateViewfinderCamera();
+    vfRenderer.render(scene, vfCam);
+  }
+}
+render();
+
+['num-x','num-y','num-z','num-phi','num-theta'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    if (cloudPoints) updateViewfinderCamera();
+  });
+});
+
+function syncFromCamera() {
+  if (!cloudPoints || dragging) return;
+  const x = camera.position.x;
+  const y = -camera.position.y;
+  const z = -camera.position.z;
+
+  const fwd = new THREE.Vector3();
+  camera.getWorldDirection(fwd);
+  const fx = fwd.x, fy = -fwd.y, fz = -fwd.z;
+  const phi = Math.atan2(fx, fz) * 180 / Math.PI;
+  const horiz = Math.sqrt(fx * fx + fz * fz);
+  const theta = -Math.atan2(fy, horiz) * 180 / Math.PI;
+
+  numX.value = x.toFixed(2);
+  numY.value = y.toFixed(2);
+  numZ.value = z.toFixed(2);
+  numPhi.value = phi.toFixed(1);
+  numTheta.value = theta.toFixed(1);
+}
+
+let dragging = false;
+['num-x','num-y','num-z','num-phi','num-theta'].forEach(id => {
+  document.getElementById(id).addEventListener('focus', () => { dragging = true; });
+  document.getElementById(id).addEventListener('blur', () => { dragging = false; });
+});
+
+resetBtn.onclick = () => {
+  camera.position.set(0, 0, 0);
+  controls.target.set(0, 0, -1.5);
+  controls.update();
+};
+
+// ---------- point cloud loader (static asset) ----------
+async function loadCloud() {
+  const r = await fetch('assets/points.bin');
+  const buf = await r.arrayBuffer();
+  const dv = new DataView(buf);
+  const n = dv.getUint32(0, true);
+  const xyzOff = 4;
+  const rgbOff = xyzOff + n * 12;
+  const xyz = new Float32Array(buf, xyzOff, n * 3);
+  const rgb = new Uint8Array(buf, rgbOff, n * 3);
+  const colors = new Float32Array(n * 3);
+  for (let i = 0; i < n * 3; i++) colors[i] = rgb[i] / 255;
+
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(xyz, 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({ size: 0.01, vertexColors: true, sizeAttenuation: true });
+
+  cloudPoints = new THREE.Points(geom, mat);
+  cloudGroup.add(cloudPoints);
+
+  geom.computeBoundingSphere();
+  const c = geom.boundingSphere.center;
+  controls.target.set(c.x, -c.y, -Math.max(Math.abs(c.z), 1));
+  controls.update();
+}
+
+async function loadMeta() {
+  const r = await fetch('assets/meta.json');
+  cameraIntrinsics = await r.json();
+  setVfFovFromIntrinsics();
+}
+
+// ---------- gallery (pre-rendered results) ----------
+function buildGallery() {
+  const urls = ['assets/result_1.png', 'assets/result_2.png', 'assets/result_3.png', 'assets/result_4.png'];
+  urls.forEach(u => {
+    const im = document.createElement('img');
+    im.src = u;
+    im.title = u;
+    im.onclick = () => window.open(u, '_blank');
+    gallery.appendChild(im);
+  });
+}
+
+resultImg.addEventListener('click', () => {
+  if (resultImg.src) window.open(resultImg.src, '_blank');
+});
+
+// ---------- boot ----------
+(async () => {
+  await loadMeta();
+  await loadCloud();
+  resizeViewfinder();
+  buildGallery();
+})();
+</script>
+</body>
+</html>
